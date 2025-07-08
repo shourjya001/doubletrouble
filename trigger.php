@@ -23,56 +23,51 @@ $OC_Tot_Recs = pg_num_rows($OCRes);
 <!-- Create Audit Table and Trigger (run this SQL once in the database) -->
 <?php
 $createAuditTable = "
-CREATE TABLE IF NOT EXISTS \"TBUSLINE_AUDIT\" (
-    \"ID\" SERIAL PRIMARY KEY,
-    \"OC_CODE\" VARCHAR(50),
-    \"OC_NAME\" VARCHAR(100),
-    \"BL_TYPE\" VARCHAR(50),
-    \"OLD_BL_CODE\" VARCHAR(50),
-    \"NEW_BL_CODE\" VARCHAR(50),
-    \"OLD_BL_NAME\" VARCHAR(100),
-    \"NEW_BL_NAME\" VARCHAR(100),
-    \"CREATED_DATE\" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS "TBUSLINE_LOG" (
+    "OC_CODE" VARCHAR(50),
+    "OC_NAME" VARCHAR(100),
+    "BL_TYPE" VARCHAR(50) DEFAULT 'SAKKARAH',
+    "OLD_BL_CODE" VARCHAR(50),
+    "NEW_BL_CODE" VARCHAR(50),
+    "OLD_BL_NAME" VARCHAR(100),
+    "NEW_BL_NAME" VARCHAR(100),
+    "CREATED_DATE" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ";
 
 $createTriggerFunction = "
-CREATE OR REPLACE FUNCTION busline_audit_trigger_func()
-RETURNS TRIGGER AS \$\$
+CREATE OR REPLACE FUNCTION log_busline_changes()
+RETURNS TRIGGER AS $$
 BEGIN
-    IF (TG_OP = 'UPDATE') THEN
-        -- Check if EnslavementToSakkarah is 'Y' or if BUSLINECODE/BUSLINENAME starts with 'Z' or '_Z'
-        IF (NEW.\"EnslavementToSakkarah\" = 'Y' AND 
-            (NEW.\"BUSLINECODE\" NOT LIKE 'Z%' AND NEW.\"BUSLINECODE\" NOT LIKE '_Z%' AND
-             NEW.\"BUSLINENAME\" NOT LIKE 'Z%' AND NEW.\"BUSLINENAME\" NOT LIKE '_Z%')) THEN
-            -- Fetch OC_CODE and OC_NAME from TOCDBE
-            INSERT INTO \"TBUSLINE_AUDIT\" (
-                \"OC_CODE\", \"OC_NAME\", \"BL_TYPE\", 
-                \"OLD_BL_CODE\", \"NEW_BL_CODE\", 
-                \"OLD_BL_NAME\", \"NEW_BL_NAME\", 
-                \"CREATED_DATE\"
-            )
-            SELECT 
-                T1.\"CODOC\", T1.\"NAMOC\", 'SAKKARAH',
-                OLD.\"BUSLINECODE\", NEW.\"BUSLINECODE\",
-                OLD.\"BUSLINENAME\", NEW.\"BUSLINENAME\",
-                CURRENT_TIMESTAMP
-            FROM \"TOCDBE\" T1
-            WHERE T1.\"BUSLINECODE\" = NEW.\"BUSLINECODE\" 
-            AND T1.\"BUSLINETYPE\" = NEW.\"BUSLINETYPE\";
-        END IF;
-        RETURN NEW;
+    -- Check if BUSLINECODE or BUSLINENAME has changed and EnslavementToSakkarah is 'Y'
+    IF (OLD."BUSLINECODE" != NEW."BUSLINECODE" OR OLD."BUSLINENAME" != NEW."BUSLINENAME") THEN
+        -- Insert log for each TOCDBE record where EnslavementToSakkarah = 'Y'
+        INSERT INTO "TBUSLINE_LOG" (
+            "OC_CODE", "OC_NAME", "BL_TYPE", 
+            "OLD_BL_CODE", "NEW_BL_CODE", 
+            "OLD_BL_NAME", "NEW_BL_NAME", 
+            "CREATED_DATE"
+        )
+        SELECT 
+            T."CODOC", T."NAMOC", 'SAKKARAH',
+            OLD."BUSLINECODE", NEW."BUSLINECODE",
+            OLD."BUSLINENAME", NEW."BUSLINENAME",
+            CURRENT_TIMESTAMP
+        FROM "TOCDBE" T
+        WHERE T."BUSLINECODE" = OLD."BUSLINECODE"
+          AND T."BUSLINETYPE" = OLD."BUSLINETYPE"
+          AND T."EnslavementToSakkarah" = 'Y';
     END IF;
-    RETURN NULL;
+    RETURN NEW;
 END;
-\$\$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 ";
 
 $createTrigger = "
-CREATE TRIGGER busline_audit_trigger
-AFTER UPDATE ON \"TBUSLINEDBE\"
+CREATE TRIGGER busline_update_trigger
+AFTER UPDATE ON "TBUSLINEDBE"
 FOR EACH ROW
-EXECUTE FUNCTION busline_audit_trigger_func();
+EXECUTE FUNCTION log_busline_changes();
 ";
 
 // Execute the SQL to create table and trigger (run once, comment out after execution)
