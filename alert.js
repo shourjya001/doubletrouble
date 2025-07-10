@@ -1,4 +1,4 @@
-('EnslavementToSakkarah:', obj.cells[10].firstChild.nodeValue)
+
 
 
 CREATE OR REPLACE FUNCTION dbo."SPU_WK_RES_TOCDBE"()
