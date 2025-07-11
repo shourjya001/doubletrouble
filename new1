@@ -9,3 +9,19 @@ FROM information_schema.columns
 WHERE table_name = 'TOCSCOPELOG'
   AND data_type = 'character varying'
   AND character_maximum_length = 10;
+
+
+INSERT INTO dbo."TOCSCOPELOGDBE" (
+  "CODOC", "OLD SCOPE", "NEW SCOPE",
+  "CODUSER", "OLD_INFOWAY", "NEW_INFOWAY",
+  "OLD_BUSLINECODE", "NEW_BUSLINECODE", "OLD BUSLINETYPE", "NEW BUSLINETYPE",
+  "OLD_FLAGUSERDBE", "NEW_FLAGUSERDBE",
+  "OLD_FLAGACTIVE", "NEW FLAGACTIVE"
+)
+VALUES (
+  '$row4Moddata[$k]', '$arrRow[0]', '".rtrim(ltrim($row5Moddata[$k], ","))."',
+  '$codUsr', '$arrRow[2]', '$row2Moddata[$k]',
+  '$arrRow[4]', '$row7Moddata[$k]', '$arrRow[3]',
+  '$row6Moddata[$k]', '$arrRow[5]', '$row3Moddata[$k]',
+  '$arrRow[6]', '$row8Moddata[$k]'
+);
