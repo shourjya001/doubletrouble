@@ -35,3 +35,32 @@ if (!$ScopeRes) {
 }
 
 echo "<script>alert(`" . addslashes($update) . "`);</script>";
+
+INSERT INTO dbo."TOCSCOPELOGDBE" (
+  "CODOC", "OLD_SCOPE", "NEW_SCOPE",
+  "CODUSER", "OLD_INFOWAY", "NEW_INFOWAY",
+  "OLD_BUSLINECODE", "NEW_BUSLINECODE",
+  "OLD_BUSLINETYPE", "NEW_BUSLINETYPE",
+  "OLD_FLAGUSERDBE", "NEW_FLAGUSERDBE",
+  "OLD_FLAGACTIVE", "NEW_FLAGACTIVE",
+  "OLD_EnslavementToSakkarah", "NEW_EnslavementToSakkarah"
+)
+VALUES (
+  '$row4Moddata[$k]', 
+  '$arrRow[0]', 
+  '".rtrim(ltrim($row5Moddata[$k], ","))."', 
+  '$codUsr', 
+  '$arrRow[2]', 
+  '$row2Moddata[$k]', 
+  '$arrRow[4]', 
+  '$row7Moddata[$k]', 
+  '$arrRow[3]', 
+  '$row6Moddata[$k]', 
+  '$arrRow[5]', 
+  '$row3Moddata[$k]', 
+  '$arrRow[6]', 
+  '$row8Moddata[$k]', 
+  '$arrRow[7]', 
+  '$row9Moddata[$k]'
+);
+
