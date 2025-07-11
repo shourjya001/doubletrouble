@@ -25,3 +25,11 @@ VALUES (
   '$row6Moddata[$k]', '$arrRow[5]', '$row3Moddata[$k]',
   '$arrRow[6]', '$row8Moddata[$k]'
 );
+
+$ScopeRes = pg_query($scopeqry);
+
+if (!$ScopeRes) {
+    echo "<script>alert('Insert failed: " . pg_last_error() . "');</script>";
+} else {
+    echo "<script>alert('Insert successful');</script>";
+}
