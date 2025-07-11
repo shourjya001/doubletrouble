@@ -2,3 +2,10 @@ CREATE TRIGGER trg_blcode_change
 AFTER UPDATE ON TOCDBE
 FOR EACH ROW
 EXECUTE FUNCTION trg_log_blcode_change();
+
+
+SELECT column_name, character_maximum_length
+FROM information_schema.columns
+WHERE table_name = 'TOCSCOPELOG'
+  AND data_type = 'character varying'
+  AND character_maximum_length = 10;
