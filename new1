@@ -33,3 +33,5 @@ if (!$ScopeRes) {
 } else {
     echo "<script>alert('Insert successful');</script>";
 }
+
+echo "<script>alert(`" . addslashes($update) . "`);</script>";
