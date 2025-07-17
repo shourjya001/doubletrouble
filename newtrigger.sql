@@ -5,8 +5,11 @@ ADD COLUMN IF NOT EXISTS "modified_by" VARCHAR(50);
 -- Modified trigger function to log BUSLINECODE or ACRONYM changes and include modified_by from session.codusr
 CREATE OR REPLACE FUNCTION dbo."trg_log_blcode_change"()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_codUsr VARCHAR(50);
 BEGIN
     IF NEW."BUSLINECODE" IS DISTINCT FROM OLD."BUSLINECODE" OR NEW."ACRONYM" IS DISTINCT FROM OLD."ACRONYM" THEN
+        v_codUsr := current_setting('myapp.codUsr', true);
         INSERT INTO "dbo"."TOCDBE_NEW" (
             "CODOC",
             "NAMOC",
@@ -25,7 +28,8 @@ BEGIN
             OLD."ACRONYM",
             NEW."BUSLINECODE",
             NEW."ACRONYM",
-            current_setting('session.codusr', TRUE) -- Retrieve codUsr from session parameter
+            -- current_setting('session.codusr', TRUE) -- Retrieve codUsr from session parameter
+            v_codUsr
         );
     END IF;
     RETURN NEW;
@@ -40,3 +44,11 @@ CREATE TRIGGER trg_blcode_change
 AFTER UPDATE ON "dbo"."TOCDBE"
 FOR EACH ROW
 EXECUTE FUNCTION dbo."trg_log_blcode_change"();
+
+
+
+
+if (isset($codUsr)) {
+    $setUserQuery = "SELECT set_config('myapp.codUsr', '$codUsr', false)";
+    pg_query($setUserQuery);
+}
